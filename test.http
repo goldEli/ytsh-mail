@@ -1,0 +1,4 @@
+###
+GET http://localhost:9999
+###
+GET http://localhost:9999/send_mail?name=许巍&phone=13554938743&region=四川省内江市威远县&address=婆城公园锦绣家园1单元1808
