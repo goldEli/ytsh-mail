@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/smtp"
+	"os"
 )
 
 type Person struct {
@@ -13,23 +15,35 @@ type Person struct {
 	address string
 }
 
+type Mail struct {
+	From     string   `json:"from"`
+	To       []string `json:"to"`
+	Password string   `json:"password"`
+}
+
 func send_mail(p *Person) {
 
+	file, _ := os.Open("config.json")
+	defer file.Close()
+	decoder := json.NewDecoder(file)
+	mail := Mail{}
+	errDecode := decoder.Decode(&mail)
+	if errDecode != nil {
+		fmt.Println("error:", errDecode)
+	}
+
 	// Sender data.
-	from := "xxxx@qq.com"
-	password := "xxxxx"
+	from := mail.From
+	password := mail.Password
 
 	// Receiver email address.
-	to := []string{
-		"xxxxx@qq.com",
-	}
+	to := mail.To
 
 	// smtp server configuration.
 	smtpHost := "smtp.qq.com"
 	smtpPort := "587"
 
 	// Message.
-	// message := []byte("This is a test email message.")
 
 	message := []byte("To: " + to[0] + "\r\n" +
 		"Subject: 来自" + p.name + "的新订单！\r\n" +
