@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/smtp"
 	"os"
+	"time"
 )
 
 type Person struct {
@@ -21,8 +24,7 @@ type Mail struct {
 	Password string   `json:"password"`
 }
 
-func send_mail(p *Person) {
-
+func sendMail(p *Person) {
 	file, _ := os.Open("config.json")
 	defer file.Close()
 	decoder := json.NewDecoder(file)
@@ -59,6 +61,8 @@ func send_mail(p *Person) {
 	// Sending email.
 	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
 	if err != nil {
+		fmt.Printf("发送失败：\n")
+		printPerson(p)
 		fmt.Println(err)
 		return
 	}
@@ -66,12 +70,12 @@ func send_mail(p *Person) {
 
 }
 
-func main() {
+func initServer() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("hello world"))
 	})
 
-	http.HandleFunc("/send_mail", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("api/send_mail", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL
 		query := url.Query()
 
@@ -80,13 +84,42 @@ func main() {
 		region := query["region"][0]
 		address := query["address"][0]
 
-		fmt.Printf(("姓名：%v\t"), name)
-		fmt.Printf("电话：%v\t", phone)
-		fmt.Printf("地区：%v\t", region)
-		fmt.Printf("地址：%v\n", address)
-		send_mail(&Person{name, phone, region, address})
-		w.Write([]byte("ok"))
+		p := Person{name, phone, region, address}
+		fmt.Printf("加入队列：\n")
+		printPerson(&p)
+		writeFile(&p)
+		sendMail(&p)
 	})
 
 	http.ListenAndServe("localhost:9999", nil)
+
+}
+
+func printPerson(p *Person) {
+	fmt.Printf(("姓名：%v\t"), p.name)
+	fmt.Printf("电话：%v\t", p.phone)
+	fmt.Printf("地区：%v\t", p.region)
+	fmt.Printf("地址：%v\n", p.address)
+
+}
+func writeFile(p *Person) {
+
+	data := time.Now().Format("01-02-2006 15:04:05 Mon") + "\t" + p.name + "\t" + p.phone + "\t" + p.region + "\t" + p.address
+
+	file, err := os.OpenFile("backup.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+
+	if err != nil {
+		log.Fatalf("failed creating file: %s", err)
+	}
+
+	datawriter := bufio.NewWriter(file)
+
+	datawriter.WriteString(data + "\n")
+
+	datawriter.Flush()
+	file.Close()
+}
+
+func main() {
+	initServer()
 }
