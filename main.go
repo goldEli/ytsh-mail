@@ -24,6 +24,12 @@ type Mail struct {
 	Password string   `json:"password"`
 }
 
+type ResponseData struct {
+	Code    int
+	Message string
+	Data    string
+}
+
 func sendMail(p *Person) {
 	file, _ := os.Open("config.json")
 	defer file.Close()
@@ -89,6 +95,11 @@ func initServer() {
 		printPerson(&p)
 		writeFile(&p)
 		sendMail(&p)
+
+		data := ResponseData{Code: 1, Message: "发送成功", Data: ""}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(data)
 	})
 	fmt.Printf("localhost:9999 监听中。。。")
 	http.ListenAndServe("localhost:9999", nil)
