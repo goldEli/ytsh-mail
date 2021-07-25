@@ -90,7 +90,7 @@ func initServer() {
 		writeFile(&p)
 		sendMail(&p)
 	})
-
+	fmt.Printf("localhost:9999 监听中。。。")
 	http.ListenAndServe("localhost:9999", nil)
 
 }
