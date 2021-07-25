@@ -75,7 +75,7 @@ func initServer() {
 		w.Write([]byte("hello world"))
 	})
 
-	http.HandleFunc("api/send_mail", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/send_mail", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL
 		query := url.Query()
 
