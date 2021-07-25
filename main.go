@@ -37,7 +37,7 @@ func sendMail(p *Person) {
 	// Sender data.
 	from := mail.From
 	password := mail.Password
-
+	fmt.Printf("发给" + from)
 	// Receiver email address.
 	to := mail.To
 
